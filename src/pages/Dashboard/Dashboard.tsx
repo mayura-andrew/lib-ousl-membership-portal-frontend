@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 import MembershipApplications from './scenes/MembershipApplications/MembershipApplications';
 import MembershipApplicationPage from './scenes/MembershipApplications/MembershipApplicationPage';
