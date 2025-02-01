@@ -18,13 +18,18 @@ import {
 } from "@/components/ui/dialog";
 import { Library, Menu, LogIn, ClipboardCheck, Home } from "lucide-react";
 
+interface DialogProps {
+  onClose: () => void;
+}
+
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
 
   // Common dialog content components
-  const StatusCheckDialog = ({ onClose }) => (
+
+  const StatusCheckDialog: React.FC<DialogProps> = ({ onClose }) => (
     <DialogContent className="bg-white">
       <DialogHeader>
         <DialogTitle>Check Application Status</DialogTitle>
@@ -47,7 +52,7 @@ const Navbar = () => {
     </DialogContent>
   );
 
-  const AdminLoginDialog = ({ onClose }) => (
+  const AdminLoginDialog: React.FC<DialogProps> = ({ onClose }) => (
     <DialogContent className="bg-white">
       <DialogHeader>
         <DialogTitle>Admin Login</DialogTitle>
