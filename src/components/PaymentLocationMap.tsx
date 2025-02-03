@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const LIBRARY_LOCATION = {
-  lat: 6.883469, // Replace with actual OUSL library coordinates
-  lng: 79.8863655,
+  lat: 6.883346, // Replace with actual OUSL library coordinates
+  lng: 79.886165,
 };
 
 const PaymentLocationMap = () => {
