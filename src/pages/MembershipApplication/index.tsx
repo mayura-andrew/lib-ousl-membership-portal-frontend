@@ -3,7 +3,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Check } from 'lucide-react';
+import { Camera, Check, ClipboardCheck, Printer, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import PaymentLocationMap from '@/components/PaymentLocationMap';
 
 // Define the form schema
 const LibraryMembershipSchema = z.object({
@@ -56,6 +58,16 @@ const LibraryMembershipForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [profilePic, setProfilePic] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [applicationRef, setApplicationRef] = useState<string>('');
+
+
+  const handleStepComplete = () => {
+    if (!completedSteps.includes(currentStep)) {
+      setCompletedSteps(prev => [...prev, currentStep]);
+    }
+  };
 
   const {
     register,
@@ -94,18 +106,107 @@ const LibraryMembershipForm = () => {
   const onSubmit = async (data: LibraryMembership) => {
     setIsSubmitting(true);
     try {
-      // Add API call here
-      console.log('Form submitted:', data);
-      alert('Application submitted successfully!');
+      if (currentStep < steps.length - 1) {
+        handleStepComplete();
+        setCurrentStep(currentStep + 1);
+      } else {
+        // Final submission
+        console.log('Form submitted:', data);
+        // Add your API call here
+        setApplicationRef('APP-' + Math.random().toString(36).substr(2, 9).toUpperCase());
+        setIsSubmitted(true);
+      }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Error submitting application. Please try again.');
+      console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <>
+    {isSubmitted ? (
+      <div className="flex flex-col items-center py-12 px-4">
+      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
+        <ClipboardCheck className="w-8 h-8 text-orange-600" />
+      </div>
+      
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        Application Submitted Successfully
+      </h2>
+      
+      <div className="text-center mb-8">
+        <p className="text-gray-600 mb-2">Your application reference number:</p>
+        <p className="text-lg font-semibold text-orange-600">{applicationRef}</p>
+      </div>
+  
+      <Card className="w-full max-w-2xl bg-orange-50 border-orange-100">
+        <CardHeader>
+          <CardTitle className="text-orange-800">Next Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center mr-3">
+                <span className="text-sm font-medium text-orange-700">1</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Application Review</h3>
+                <p className="text-gray-600">Library staff will review your application within 2-3 working days</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center mr-3">
+                <span className="text-sm font-medium text-orange-700">2</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Email Notification</h3>
+                <p className="text-gray-600">You will receive an email once your application is approved</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center mr-3">
+                <span className="text-sm font-medium text-orange-700">3</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Payment</h3>
+                <p className="text-gray-600">Visit the library counter with your reference number to complete the payment</p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="font-medium text-gray-900 mb-3">Payment Location</h3>
+              <PaymentLocationMap />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+  
+      <div className="mt-8 space-x-4">
+        <Button
+          variant="outline"
+          className="border-orange-200 hover:bg-orange-50"
+          onClick={() => window.print()}
+        >
+          <Printer className="w-4 h-4 mr-2" />
+          Print Reference
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="border-orange-200 hover:bg-orange-50"
+          onClick={() => {/* Add check status handler */}}
+        >
+          <Search className="w-4 h-4 mr-2" />
+          Check Status
+        </Button>
+      </div>
+    </div>
+
+  ) : (
+
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>Library Membership Application</CardTitle>
@@ -125,35 +226,40 @@ const LibraryMembershipForm = () => {
             </div>
         
             {/* Step Indicators - With completed check icon */}
-            <div className="relative flex justify-between">
-              {['Personal Details', 'Address', 'Academic Info'].map((label, idx) => (
-                <div key={idx} className="flex flex-col items-center z-10">
-                  <div 
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 bg-white ${
-                      idx <= currentStep 
-                        ? 'border-orange-500 bg-orange-500 text-white' 
-                        : 'border-gray-300 text-gray-500'
-                    }`}
-                  >
-                    {idx < currentStep ? (
-                      <Check className="w-5 h-5 stroke-[3]" />
-                    ) : (
-                      <span className="text-sm font-medium">{idx + 1}</span>
-                    )}
-                  </div>
-                  <div className={`mt-2 text-sm font-medium ${
-                    idx <= currentStep ? 'text-orange-600' : 'text-gray-500'
-                  }`}>
-                    {label}
-                  </div>
-                  {idx <= currentStep && (
-                    <div className="mt-1 text-xs text-gray-500">
-                      {idx === currentStep ? 'In Progress' : 'Completed'}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+<div className="relative flex justify-between">
+  {['Personal Details', 'Address', 'Academic Info'].map((label, idx) => (
+    <div key={idx} className="flex flex-col items-center z-10">
+      <div 
+        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 bg-white ${
+          completedSteps.includes(idx)
+            ? 'border-orange-500 bg-orange-500 text-white'  // Completed steps
+            : idx === currentStep
+            ? 'border-orange-500 bg-white text-orange-500'  // Current step
+            : 'border-gray-300 text-gray-500'              // Future steps
+        }`}
+      >
+        {completedSteps.includes(idx) ? (
+          <Check className="w-5 h-5 stroke-[3]" />
+        ) : (
+          <span className="text-sm font-medium">{idx + 1}</span>
+        )}
+      </div>
+      <div className={`mt-2 text-sm font-medium ${
+        completedSteps.includes(idx) || idx === currentStep ? 'text-orange-600' : 'text-gray-500'
+      }`}>
+        {label}
+      </div>
+      <div className="mt-1 text-xs text-gray-500">
+        {completedSteps.includes(idx) 
+          ? 'Completed'
+          : idx === currentStep 
+          ? 'In Progress' 
+          : ''}
+      </div>
+    </div>
+  ))}
+</div>
+
           </div>
         </div>
 
@@ -499,7 +605,10 @@ const LibraryMembershipForm = () => {
         </form>
       </CardContent>
     </Card>
+  )};
+  </>
   );
-};
+}
+
 
 export default LibraryMembershipForm;
