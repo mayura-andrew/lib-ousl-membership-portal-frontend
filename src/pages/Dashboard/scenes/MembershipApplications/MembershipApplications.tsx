@@ -1,17 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Download, Check, X, Clock, BookOpen, IdCard, CreditCard, CheckCircle2 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Search, Download, Check, X, Clock, BookOpen } from 'lucide-react';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 
 // Type definition for library membership
@@ -57,178 +47,10 @@ type LibraryMembership = {
   status_updated_date?: string;
 };
 
-const ProcessTimeline: React.FC<{ data: LibraryMembership }> = ({ data }) => {
-  const steps = [
-    {
-      label: 'Application Review',
-      status: data.state === 'approved' ? 'complete' : 
-              data.state === 'rejected' ? 'failed' : 'current',
-      icon: <IdCard size={18} />
-    },
-    {
-      label: 'Payment Processing',
-      status: data.state !== 'approved' ? 'pending' :
-              data.payment_status === 'confirmed' ? 'complete' :
-              data.payment_status === 'failed' ? 'failed' : 'current',
-      icon: <CreditCard size={18} />
-    },
-    {
-      label: 'Membership Creation',
-      status: data.payment_status !== 'confirmed' ? 'pending' :
-              data.membership_status === 'active' ? 'complete' :
-              data.membership_status === 'processing' ? 'current' : 'pending',
-      icon: <CheckCircle2 size={18} />
-    }
-  ]
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between">
-        {steps.map((step, index) => (
-          <div key={step.label} className="flex flex-col items-center w-1/3">
-            <div className={`rounded-full p-2 ${
-              step.status === 'complete' ? 'bg-green-100 text-green-600' :
-              step.status === 'current' ? 'bg-blue-100 text-blue-600' :
-              step.status === 'failed' ? 'bg-red-100 text-red-600' :
-              'bg-gray-100 text-gray-400'
-            }`}>
-              {step.icon}
-            </div>
-            <div className="text-sm font-medium mt-2 text-center">{step.label}</div>
-            <div className={`text-xs mt-1 ${
-              step.status === 'complete' ? 'text-green-600' :
-              step.status === 'current' ? 'text-blue-600' :
-              step.status === 'failed' ? 'text-red-600' :
-              'text-gray-400'
-            }`}>
-              {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
-            </div>
-          </div>
-        ))}
-      </div>
-      <Progress value={
-        data.state === 'approved' ? 
-          data.payment_status === 'confirmed' ?
-            data.membership_status === 'active' ? 100 : 66 
-          : 33
-        : data.state === 'rejected' ? 0 : 33
-      } className="h-2" />
-    </div>
-  );
-};
-
-const PaymentStatus: React.FC<{ 
-  data: LibraryMembershipData,
-  onUpdatePayment: () => void 
-}> = ({ data, onUpdatePayment }) => {
-  const statusColors = {
-    pending: 'text-yellow-700 bg-yellow-50 border-yellow-200',
-    processing: 'text-blue-700 bg-blue-50 border-blue-200',
-    confirmed: 'text-green-700 bg-green-50 border-green-200',
-    failed: 'text-red-700 bg-red-50 border-red-200'
-  };
-
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Payment Information</h2>
-          <Badge variant="outline" className={statusColors[data.payment_status]}>
-            {data.payment_status.toUpperCase()}
-          </Badge>
-        </div>
-
-        {data.payment_details && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-semibold">LKR {data.payment_details.amount.toFixed(2)}</span>
-            </div>
-            {data.payment_details.payment_date && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Payment Date:</span>
-                <span>{new Date(data.payment_details.payment_date).toLocaleDateString()}</span>
-              </div>
-            )}
-            {data.payment_details.reference_number && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Reference Number:</span>
-                <span>{data.payment_details.reference_number}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-      {data.state === 'approved' && data.payment_status === 'pending' && (
-        <CardFooter className="bg-gray-50 p-4">
-          <Button 
-            onClick={onUpdatePayment}
-            className="w-full"
-          >
-            <CreditCard className="w-4 h-4 mr-2" />
-            Confirm Payment Receipt
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
-  );
-};
-
-const MembershipStatus: React.FC<{ 
-  data: LibraryMembership,
-  onCreateMembership: () => void 
-}> = ({ data, onCreateMembership }) => {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Membership Details</h2>
-          <Badge variant="outline" className={
-            data.membership_status === 'active' ? 'bg-green-100 text-green-800' :
-            data.membership_status === 'processing' ? 'bg-blue-100 text-blue-800' :
-            'bg-gray-100 text-gray-800'
-          }>
-            {data.membership_status.toUpperCase().replace('_', ' ')}
-          </Badge>
-        </div>
-
-        {data.membership_details ? (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Membership Number:</span>
-              <span className="font-semibold">{data.membership_details.membership_number}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Valid From:</span>
-              <span>{new Date(data.membership_details.start_date!).toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Valid Until:</span>
-              <span>{new Date(data.membership_details.end_date!).toLocaleDateString()}</span>
-            </div>
-          </div>
-        ) : (
-          data.payment_status === 'confirmed' && (
-            <CardFooter className="bg-gray-50 p-4">
-              <Button 
-                onClick={onCreateMembership}
-                className="w-full"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Create Membership
-              </Button>
-            </CardFooter>
-          )
-        )}
-      </CardContent>
-    </Card>
-  );
-};
 
 const MembershipApplication: React.FC = () => {
   const [filter, setFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const pageSize = 12;
   const [data, setData] = useState<LibraryMembership | null>(null);
 
   const memberships: LibraryMembership[] = [
@@ -378,13 +200,11 @@ const MembershipApplication: React.FC = () => {
   }, []);
 
 
-  const { ref, inView } = useInView();
+  const { ref } = useInView();
 
-  
   // Mock data loading states
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
+  const [isLoading] = useState(false);
+  const [isFetchingNextPage] = useState(false);
 
   const stats = {
     all: 156,
@@ -394,37 +214,9 @@ const MembershipApplication: React.FC = () => {
     expired: 20
   };
 
-  const handleConfirmPayment = async () => {
-    setData(prev => prev ? {
-      ...prev,
-      payment_status: 'confirmed',
-      payment_details: {
-        amount: 1000.00,
-        payment_date: new Date().toISOString(),
-        reference_number: 'PAY-' + Math.random().toString(36).substr(2, 9),
-        confirmed_by: 'Finance Admin',
-        confirmed_date: new Date().toISOString()
-      }
-    } : null);
-  };
-
   if (isLoading || !data) {
     return <LoadingSkeleton />;
   }
-
-  const handleCreateMembership = async () => {
-    setData(prev => prev ? {
-      ...prev,
-      membership_status: 'active',
-      membership_details: {
-        membership_number: 'MEM-' + Math.random().toString(36).substr(2, 9),
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        created_by: 'Library Admin',
-        created_date: new Date().toISOString()
-      }
-    } : null);
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

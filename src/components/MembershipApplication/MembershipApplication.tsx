@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,19 @@ import { Skeleton } from '../ui/skeleton';
 import ProcessTimeline from '../ProcessTimeline';
 import { Alert, AlertDescription } from '../ui/alert';
 
+type Status = 'approved' | 'rejected' | 'pending';
+type ApplicationState = 'pending' | 'approved' | 'rejected';
+
+interface StatusBadgeProps {
+  status: Status;
+}
+
+interface InfoItemProps {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  className?: string;
+}
 interface Address {
   street: string;
   city: string;
@@ -77,7 +90,7 @@ const mockData: LibraryMembershipData = {
     updated_at: new Date().toISOString()
 };
 
-const StatusBadge = ({ status }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const config = {
     approved: {
       className: "bg-green-100 text-green-800 border-green-200",
@@ -102,7 +115,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const InfoItem = ({ icon, label, value, className = "" }) => (
+const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value, className = "" }) => (
   <div className={`p-4 bg-gray-50 rounded-lg ${className}`}>
     <div className="flex items-center space-x-2 mb-2">
       <div className="text-orange-500">{icon}</div>
@@ -119,7 +132,7 @@ const MembershipApplicationDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState(false);
 
-  const handleAction = async (action) => {
+  const handleAction = async (action: ApplicationState) => {
     setActionInProgress(true);
     await new Promise(resolve => setTimeout(resolve, 500));
     setData(prev => prev ? {
