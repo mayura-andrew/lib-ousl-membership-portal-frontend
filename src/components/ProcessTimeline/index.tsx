@@ -1,8 +1,16 @@
-import React from 'react';
 import { Check, X, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ProcessTimeline = ({
+type ApplicationState = 'pending' | 'approved' | 'rejected';
+type PaymentStatus = 'pending' | 'processing' | 'confirmed' | 'failed';
+type MembershipStatus = 'not_started' | 'processing' | 'active' | 'expired';
+
+interface ProcessTimelineProps {
+  applicationState: ApplicationState;
+  paymentStatus: PaymentStatus;
+  membershipStatus: MembershipStatus;
+}
+const ProcessTimeline: React.FC<ProcessTimelineProps> = ({
   applicationState,
   paymentStatus,
   membershipStatus
@@ -38,7 +46,7 @@ const ProcessTimeline = ({
     }
   ];
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'complete':
         return <Check className="w-5 h-5" />;
@@ -70,7 +78,7 @@ const ProcessTimeline = ({
 
         {/* Steps */}
         <div className="relative flex justify-between">
-          {steps.map((step, idx) => (
+          {steps.map((step) => (
             <div key={step.label} className="flex flex-col items-center w-1/3">
               <div
                 className={cn(
