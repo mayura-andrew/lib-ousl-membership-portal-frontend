@@ -2,6 +2,8 @@ import { Link, Route, Routes } from 'react-router-dom';
 import MembershipApplications from './scenes/MembershipApplications/MembershipApplications';
 import MembershipApplicationPage from './scenes/MembershipApplications/MembershipApplicationPage';
 import Inquiries from './scenes/Inquiries/Inquiry';
+import MembershipApplicationDetail from '@/components/MembershipApplication/MembershipApplication';
+import FinancePaymentVerification from './scenes/FinanceDivision';
 const Dashboard: React.FC = () => {
   return (
     <div className="flex">
@@ -42,7 +44,16 @@ const Dashboard: React.FC = () => {
             path="/membership-applications/:membershipID"
             element={<MembershipApplicationPage />}
           />
+          <Route
+            path="/memberships/:membershipID"
+            element={<MembershipApplicationDetail />}
+          />
           <Route path="/inqueries" element={<Inquiries />} />
+          <Route 
+            path="/payments/:membershipId" 
+            element={<FinancePaymentVerification />} 
+          />
+
         </Routes>
       </main>
     </div>
