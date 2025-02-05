@@ -34,6 +34,7 @@ interface PaymentVerificationData {
     faculty: string;
     student_id: string;
     membership_type: string;
+    profile_pic?: string;
   };
   payment: {
     status: 'pending' | 'verified' | 'rejected' | 'awaiting_payment';
@@ -119,7 +120,9 @@ const FinancePaymentVerification: React.FC = () => {
           reg_no: 20240001,
           faculty: 'Faculty of Science',
           student_id: 'STD001',
-          membership_type: 'UNDERGRADUATE'
+          membership_type: 'UNDERGRADUATE',
+          profile_pic: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John' // Add mock profile pic
+
         },
         payment: {
           status: 'pending',
@@ -138,174 +141,259 @@ const FinancePaymentVerification: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header Card */}
       <Card className="border-none shadow-lg">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
+          {/* Header with Status */}
+          <div className="flex justify-between items-start mb-8">
+            <div className="space-y-1">
               <h1 className="text-2xl font-bold text-gray-900">Payment Verification</h1>
-              <p className="text-sm text-gray-500">Application ID: {data.id}</p>
+              <p className="text-sm text-gray-500">Reference: #{data.id}</p>
             </div>
             <PaymentStatusBadge status={data.payment.status} />
           </div>
 
-          {/* Applicant Details */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <div className="space-y-1">
-              <Label className="text-sm text-gray-500">Applicant Name</Label>
-              <p className="font-medium">{data.application.full_name}</p>
+          {/* Profile Section */}
+          <div className="flex items-start gap-6 mb-8">
+            <div className="relative flex-shrink-0">
+              <img
+                src={data.application.profile_pic || '/placeholder.png'}
+                alt={data.application.full_name}
+                className="w-24 h-24 rounded-xl object-cover ring-4 ring-orange-50"
+              />
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-gray-500">Student ID</Label>
-              <p className="font-medium">{data.application.student_id}</p>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-gray-500">Faculty</Label>
-              <p className="font-medium">{data.application.faculty}</p>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-gray-500">Membership Type</Label>
-              <p className="font-medium">{data.application.membership_type}</p>
+            <div className="flex-grow">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {data.application.full_name}
+              </h2>
+              <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <div>
+                  <span className="text-gray-500">Student ID</span>
+                  <p className="font-medium">{data.application.student_id}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Faculty</span>
+                  <p className="font-medium">{data.application.faculty}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Membership</span>
+                  <p className="font-medium">{data.application.membership_type}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Registration</span>
+                  <p className="font-medium">{data.application.reg_no}</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Payment Details */}
-          <Card className="bg-gray-50">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold text-gray-900">Payment Details</h2>
-                <div className="text-2xl font-bold text-gray-900">
+          {/* Payment Amount Card */}
+          <div className="bg-orange-50 rounded-lg p-6 mb-8">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-orange-600">Payment Amount</p>
+                <h3 className="text-3xl font-bold text-gray-900">
                   LKR {data.payment.amount.toFixed(2)}
+                </h3>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Details Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {data.payment.due_date && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <CalendarDays className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">Due Date</span>
                 </div>
+                <p className="text-gray-900">
+                  {new Date(data.payment.due_date).toLocaleDateString()}
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                {data.payment.due_date && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <CalendarDays size={16} />
-                    <span>Due: {new Date(data.payment.due_date).toLocaleDateString()}</span>
+            )}
+
+            {data.payment.payment_method && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Receipt className="w-4 h-4 text-gray-600" />
                   </div>
-                )}
-                {data.payment.payment_method && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Receipt size={16} />
-                    <span>Method: {data.payment.payment_method.replace('_', ' ')}</span>
-                  </div>
-                )}
-                {data.payment.reference_number && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <CreditCard size={16} />
-                    <span>Ref: {data.payment.reference_number}</span>
-                  </div>
-                )}
+                  <span className="text-sm font-medium text-gray-600">Method</span>
+                </div>
+                <p className="text-gray-900">
+                  {data.payment.payment_method.replace('_', ' ')}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+
+            {data.payment.reference_number && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">Reference</span>
+                </div>
+                <p className="text-gray-900">{data.payment.reference_number}</p>
+              </div>
+            )}
+          </div>
         </CardContent>
 
+        {/* Action Buttons */}
         {data.payment.status === 'pending' && (
-          <CardFooter className="p-6 bg-gray-50 space-x-3">
-            <Button
-              variant="outline"
-              className="flex-1 bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-              onClick={() => setIsVerifyDialogOpen(true)}
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Verify Payment
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-              onClick={() => setIsRejectDialogOpen(true)}
-            >
-              <XCircle className="w-4 h-4 mr-2" />
-              Reject Payment
-            </Button>
+          <CardFooter className="p-6 bg-gray-50 border-t">
+            <div className="flex gap-4 w-full">
+              <Button
+                variant="outline"
+                className="flex-1 border-green-200 bg-green-50 hover:bg-green-100 text-green-700"
+                onClick={() => setIsVerifyDialogOpen(true)}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Verify Payment
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 border-red-200 bg-red-50 hover:bg-red-100 text-red-700"
+                onClick={() => setIsRejectDialogOpen(true)}
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Reject Payment
+              </Button>
+            </div>
           </CardFooter>
         )}
       </Card>
 
-      {/* Verify Payment Dialog */}
       <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Verify Payment</DialogTitle>
+        <DialogContent className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 max-w-md">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Verify Payment
+            </DialogTitle>
+            <p className="text-sm text-gray-500">
+              Please enter the payment verification details below
+            </p>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Payment Method</Label>
+      
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <Label className="text-sm font-medium text-gray-700">Payment Method</Label>
               <RadioGroup
                 value={verificationDetails.paymentMethod}
                 onValueChange={value => 
                   setVerificationDetails(prev => ({...prev, paymentMethod: value}))
                 }
+                className="grid gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="CASH" id="cash" />
-                  <Label htmlFor="cash">Cash</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="BANK_TRANSFER" id="bank" />
-                  <Label htmlFor="bank">Bank Transfer</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ONLINE" id="online" />
-                  <Label htmlFor="online">Online Payment</Label>
-                </div>
+                {[
+                  { value: 'CASH', label: 'Cash' },
+                  { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+                  { value: 'ONLINE', label: 'Online Payment' }
+                ].map(option => (
+                  <div key={option.value} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+                    <RadioGroupItem value={option.value} id={option.value.toLowerCase()} />
+                    <Label htmlFor={option.value.toLowerCase()} className="flex-grow cursor-pointer">
+                      {option.label}
+                    </Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
-            <div className="space-y-2">
-              <Label>Reference Number</Label>
+      
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">
+                Reference Number
+              </Label>
               <Input
                 value={verificationDetails.referenceNumber}
                 onChange={e => 
                   setVerificationDetails(prev => ({...prev, referenceNumber: e.target.value}))
                 }
                 placeholder="Enter payment reference number"
+                className="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Payment Date</Label>
+      
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">
+                Payment Date
+              </Label>
               <Input
                 type="date"
                 value={verificationDetails.paidDate}
                 onChange={e => 
                   setVerificationDetails(prev => ({...prev, paidDate: e.target.value}))
                 }
+                className="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsVerifyDialogOpen(false)}>
+      
+          <DialogFooter className="mt-8 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsVerifyDialogOpen(false)}
+              className="flex-1 border-gray-200 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button onClick={handleVerifyPayment}>Confirm Verification</Button>
+            <Button
+              onClick={handleVerifyPayment}
+              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              Confirm Verification
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       {/* Reject Payment Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Payment</DialogTitle>
+        <DialogContent className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 max-w-md">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Reject Payment
+            </DialogTitle>
+            <p className="text-sm text-gray-500">
+              Please provide a reason for rejecting this payment
+            </p>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Rejection Reason</Label>
-              <Input
-                value={verificationDetails.rejectionReason}
-                onChange={e => 
-                  setVerificationDetails(prev => ({...prev, rejectionReason: e.target.value}))
-                }
-                placeholder="Enter reason for rejection"
-              />
-            </div>
+      
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">
+              Rejection Reason
+            </Label>
+            <Input
+              value={verificationDetails.rejectionReason}
+              onChange={e => 
+                setVerificationDetails(prev => ({...prev, rejectionReason: e.target.value}))
+              }
+              placeholder="Enter reason for rejection"
+              className="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+      
+          <DialogFooter className="mt-8 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+              className="flex-1 border-gray-200 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleRejectPayment}>
+            <Button
+              variant="destructive"
+              onClick={handleRejectPayment}
+              className="flex-1"
+            >
               Confirm Rejection
             </Button>
           </DialogFooter>

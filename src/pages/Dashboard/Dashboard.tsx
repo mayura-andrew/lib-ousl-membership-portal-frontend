@@ -4,6 +4,7 @@ import MembershipApplicationPage from './scenes/MembershipApplications/Membershi
 import Inquiries from './scenes/Inquiries/Inquiry';
 import MembershipApplicationDetail from '@/components/MembershipApplication/MembershipApplication';
 import FinancePaymentVerification from './scenes/FinanceDivision';
+import FinanceApplications from './scenes/FinanceDivision/FinanceApplications';
 const Dashboard: React.FC = () => {
   return (
     <div className="flex">
@@ -49,8 +50,9 @@ const Dashboard: React.FC = () => {
             element={<MembershipApplicationDetail />}
           />
           <Route path="/inqueries" element={<Inquiries />} />
+          <Route path="/finance/applications" element={<FinanceApplications />} />
           <Route 
-            path="/payments/:membershipId" 
+            path="/finance/payments/:membershipId" 
             element={<FinancePaymentVerification />} 
           />
 
