@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, X, User, Mail, Phone, MapPin, School, Calendar, IdCard, Building, Clock, AlertCircle } from "lucide-react";
-import { Skeleton } from '../ui/skeleton';
+import { Check, X, AlertCircle, Pencil, Save, RotateCcw } from "lucide-react";
 import ProcessTimeline from '../ProcessTimeline';
 import { Alert, AlertDescription } from '../ui/alert';
+import LoadingSkeleton from '../LoadingSkeleton';
+import {TooltipProvider } from '../ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { toast } from "../../../hooks/use-toast";
+import ProfileSection from '../Membership/sections/ProfileSection';
+import { ContactSection } from '../Membership/sections/ContactSection';
+import { AcademicSection } from '../Membership/sections/AcademicSection';
+import { TooltipButton } from '../ui/tooltip-button';
 
-type Status = 'approved' | 'rejected' | 'pending';
 type ApplicationState = 'pending' | 'approved' | 'rejected';
-
-interface StatusBadgeProps {
-  status: Status;
-}
-
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode; // Changed from string | number
-  className?: string;
-}
 
 interface Address {
   street: string;
@@ -91,49 +84,52 @@ const mockData: LibraryMembershipData = {
     updated_at: new Date().toISOString()
 };
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const config = {
-    approved: {
-      className: "bg-green-100 text-green-800 border-green-200",
-      icon: <Check className="w-3 h-3 mr-1" />
-    },
-    rejected: {
-      className: "bg-red-100 text-red-800 border-red-200",
-      icon: <X className="w-3 h-3 mr-1" />
-    },
-    pending: {
-      className: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      icon: <Clock className="w-3 h-3 mr-1" />
-    }
-  };
-
-  const { className, icon } = config[status];
-  return (
-    <Badge variant="outline" className={`${className} px-3 py-1 text-xs font-semibold rounded-full flex items-center`}>
-      {icon}
-      {status.toUpperCase()}
-    </Badge>
-  );
-};
-
-const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value, className = "" }) => (
-  <div className={`p-4 bg-gray-50 rounded-lg ${className}`}>
-    <div className="flex items-center space-x-2 mb-2">
-      <div className="text-orange-500">{icon}</div>
-      <p className="text-sm font-medium text-gray-600">{label}</p>
-    </div>
-    <div className="ml-6 text-gray-900">{value}</div>
-  </div>
-);
-
-
 const MembershipApplicationDetail: React.FC = () => {
   const { membershipId } = useParams();
   const [data, setData] = useState<LibraryMembershipData | null>(null);
+  const [editedData, setEditedData] = useState<LibraryMembershipData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState<ApplicationState | null>(null);
+
+  const handleEdit = () => {
+    setEditedData(data);
+    setIsEditing(true);
+  }
+
+  const handleSave = async () => {
+    setActionInProgress(true);
+    try {
+      // API call would go here
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setData(editedData);
+      setIsEditing(false);
+      toast({
+        title: "Changes saved successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save changes",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      console.error(error);
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedData(data)
+    setIsEditing(false)
+  }
 
   const handleAction = async (action: ApplicationState) => {
+    setPendingAction(action);
+    setShowConfirmDialog(true);
     setActionInProgress(true);
     await new Promise(resolve => setTimeout(resolve, 500));
     setData(prev => prev ? {
@@ -154,7 +150,36 @@ const MembershipApplicationDetail: React.FC = () => {
     }
   }
 
-
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+    
+    setActionInProgress(true);
+    setShowConfirmDialog(false);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setData(prev => prev ? {
+        ...prev,
+        state: pendingAction,
+        status_updated_date: new Date().toISOString()
+      } : null);
+      
+      toast({
+        title: `Application ${pendingAction} successfully`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Action failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      console.error(error);
+    } finally {
+      setActionInProgress(false);
+      setPendingAction(null);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -175,9 +200,61 @@ const MembershipApplicationDetail: React.FC = () => {
   }
 
   return (
+    <TooltipProvider>
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Header Card */}
+      <div className="flex justify-between items-center">
+      <h1 className="text-3xl font-bold text-gray-900">Membership Application</h1>
+      <div className="flex gap-3">
+        {!isEditing ? (
+          <>
+<TooltipButton
+  tooltip="Edit application details"
+  onClick={handleEdit}
+  icon={<Pencil className="w-4 h-4" />}
+  label="Edit Details"
+  className="bg-orange-50 hover:bg-orange-100 text-orange-600"
+/>
 
+<TooltipButton
+  tooltip="Reject application" 
+  onClick={() => handleAction('rejected')}
+  icon={<X className="w-4 h-4" />}
+  label="Reject"
+  className="bg-red-50 hover:bg-red-100 text-red-600"
+  disabled={actionInProgress}
+/> <TooltipButton
+  tooltip="Approve application"
+  onClick={() => handleAction('approved')}
+  icon={<Check className="w-4 h-4" />}
+  label="Approve"
+  className="bg-green-50 hover:bg-green-100 text-green-600"
+  disabled={actionInProgress}
+/>
+          </>
+          ) : (
+            <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="border-gray-200"
+                  disabled={actionInProgress}
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  disabled={actionInProgress}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
         <ProcessTimeline 
           applicationState={data.state}
@@ -195,170 +272,62 @@ const MembershipApplicationDetail: React.FC = () => {
         </Alert>
       )}
 {/* Profile Section */}
-<div className="bg-white rounded-xl shadow-md p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <img
-                src={data.application.profile_pic || '/placeholder.png'}
-                alt="Profile"
-                className="w-28 h-28 rounded-xl object-cover ring-4 ring-orange-50"
-              />
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-                <StatusBadge status={data.state} />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {data.application.full_name}
-              </h1>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="secondary" className="bg-orange-50 text-orange-700">
-                  {data.application.membership_type}
-                </Badge>
-                <span className="text-sm text-gray-500">ID: {data.id}</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              disabled={actionInProgress || data.state === 'rejected'}
-              onClick={() => handleAction('rejected')}
-              className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Reject
-            </Button>
-            <Button
-              variant="outline"
-              disabled={actionInProgress || data.state === 'approved'}
-              onClick={() => handleAction('approved')}
-              className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              Approve
-            </Button>
-          </div>
-        </div>
-      </div>
+<ProfileSection 
+          data={data}
+          actionInProgress={actionInProgress}
+          onAction={handleAction}
+          isEditing={isEditing}
+        />
 
       {/* Information Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="shadow-md">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-orange-500" />
-              Personal Information
-            </h2>
-            <div className="space-y-4">
-              <InfoItem
-                icon={<User size={18} />}
-                label="Full Name"
-                value={`${data.application.title}. ${data.application.full_name}`}
-              />
-              <InfoItem
-                icon={<IdCard size={18} />}
-                label="NIC Number"
-                value={data.application.nic_no}
-              />
-              <InfoItem
-                icon={<Calendar size={18} />}
-                label="Date of Birth"
-                value={new Date(data.application.date_of_birth).toLocaleDateString()}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <ContactSection 
+            data={data}
+            isEditing={isEditing}
+            onEdit={handleEdit}
+          />
 
-        <Card className="shadow-md">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-orange-500" />
-              Contact Information
-            </h2>
-            <div className="space-y-4">
-              <InfoItem
-                icon={<Mail size={18} />}
-                label="Email Addresses"
-                value={
-                  <div className="space-y-1">
-                    <p className="font-medium">{data.application.university_email}</p>
-                    <p className="text-gray-500">{data.application.personal_email}</p>
-                  </div>
-                }
-              />
-              <InfoItem
-                icon={<Phone size={18} />}
-                label="Phone Number"
-                value={data.application.contact_no}
-              />
-              <InfoItem
-                icon={<MapPin size={18} />}
-                label="Permanent Address"
-                value={
-                  <address className="not-italic">
-                    {data.application.permanent_address.street}<br />
-                    {data.application.permanent_address.city}<br />
-                    {data.application.permanent_address.state} {data.application.permanent_address.zip}
-                  </address>
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
+          <AcademicSection 
+            data={data}
+            isEditing={isEditing}
+            onEdit={handleEdit}
+      />
 
-        <Card className="shadow-md md:col-span-2">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <School className="w-5 h-5 text-orange-500" />
-              Academic Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoItem
-                icon={<Building size={18} />}
-                label="Faculty"
-                value={data.application.faculty}
-              />
-              <InfoItem
-                icon={<School size={18} />}
-                label="Course"
-                value={data.application.course}
-              />
-              <InfoItem
-                icon={<School size={18} />}
-                label="Level"
-                value={data.application.level}
-              />
-              <InfoItem
-                icon={<IdCard size={18} />}
-                label="Student ID"
-                value={data.application.student_id}
-              />
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
-  );
-};
 
-
-const LoadingSkeleton: React.FC = () => (
-  <div className="max-w-5xl mx-auto p-6 space-y-6">
-    <Card className="border-none shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-6">
-          <Skeleton className="w-24 h-24 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-48" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
+    {/* Confirmation Dialog */}
+    <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>
+          Confirm {pendingAction === 'approved' ? 'Approval' : 'Rejection'}
+        </DialogTitle>
+        <DialogDescription>
+          Are you sure you want to {pendingAction} this application? 
+          This action cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+      <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={pendingAction === 'approved' ? 'default' : 'destructive'}
+              onClick={confirmAction}
+            >
+              {pendingAction === 'approved' ? 'Approve' : 'Reject'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
 );
+}
 
 export default MembershipApplicationDetail;

@@ -349,7 +349,7 @@ const MembershipApplication: React.FC = () => {
                     to={`/admin/dashboard/memberships/${membership.uuid}`}
                     className="text-orange-600 hover:text-orange-700 font-medium text-sm"
                   >
-                    View Details →
+                    Check →
                   </Link>
                 </td>
               </tr>
