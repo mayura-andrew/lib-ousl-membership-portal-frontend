@@ -20,6 +20,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
+type PaymentStatus = 'pending' | 'verified' | 'rejected' | 'awaiting_payment';
+
+interface PaymentStatusBadgeProps {
+    status: PaymentStatus;
+}
+
 interface PaymentVerificationData {
   id: string;
   application: {
@@ -43,8 +49,8 @@ interface PaymentVerificationData {
   created_at: string;
 }
 
-const PaymentStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const variants = {
+const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({ status }) => {
+  const variants: Record<PaymentStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
     verified: "bg-green-100 text-green-800 border-green-200",
     rejected: "bg-red-100 text-red-800 border-red-200",

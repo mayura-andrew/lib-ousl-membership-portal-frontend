@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ interface StatusBadgeProps {
 }
 
 interface InfoItemProps {
-  icon: ReactNode;
+  icon: React.ReactNode;
   label: string;
-  value: string | number;
+  value: React.ReactNode; // Changed from string | number
   className?: string;
 }
+
 interface Address {
   street: string;
   city: string;
@@ -187,8 +188,7 @@ const MembershipApplicationDetail: React.FC = () => {
       
       {/* Status Alert */}
       {data.state === 'pending' && (
-        <Alert variant="warning" className="bg-amber-50 border-amber-200">
-          <AlertCircle className="w-4 h-4 text-amber-600" />
+        <Alert variant="default" className="bg-amber-50 border-amber-200">          <AlertCircle className="w-4 h-4 text-amber-600" />
           <AlertDescription className="text-amber-800">
             This application requires your review. Please check all details carefully before making a decision.
           </AlertDescription>
