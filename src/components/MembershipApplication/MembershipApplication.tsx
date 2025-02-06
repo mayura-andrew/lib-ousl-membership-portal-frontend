@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import LoadingSkeleton from '../LoadingSkeleton';
 import {TooltipProvider } from '../ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-import { toast } from "../../../hooks/use-toast";
+import { toast } from "../../hooks/use-toast";
 import { TooltipButton } from '../ui/tooltip-button';
 import { ProfileSection } from '../Membership/sections/ProfileSection';
 
