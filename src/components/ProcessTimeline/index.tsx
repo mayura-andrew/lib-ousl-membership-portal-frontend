@@ -44,7 +44,7 @@ const ProcessTimeline: React.FC<ProcessTimelineProps> = ({
               membershipStatus === 'processing' ? 'current' : 'pending',
       date: '2024-02-05'
     }
-  ];
+  ]
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -60,7 +60,7 @@ const ProcessTimeline: React.FC<ProcessTimelineProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full py-8">
       <div className="relative">
         {/* Progress Line */}
         <div className="absolute left-0 top-[2.25rem] w-full h-1 bg-gray-200">

@@ -8,10 +8,8 @@ import LoadingSkeleton from '../LoadingSkeleton';
 import {TooltipProvider } from '../ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { toast } from "../../../hooks/use-toast";
-import ProfileSection from '../Membership/sections/ProfileSection';
-import { ContactSection } from '../Membership/sections/ContactSection';
-import { AcademicSection } from '../Membership/sections/AcademicSection';
 import { TooltipButton } from '../ui/tooltip-button';
+import { ProfileSection } from '../Membership/sections/ProfileSection';
 
 type ApplicationState = 'pending' | 'approved' | 'rejected';
 
@@ -28,6 +26,7 @@ interface LibraryMembershipData {
     title: string;
     first_name: string;
     last_name: string;
+    initials: string;
     full_name: string;
     reg_no: number;
     membership_type: 'UNDERGRADUATE' | 'POSTGRADUATE' | 'STAFF' | 'EXTERNAL';
@@ -56,6 +55,7 @@ const mockData: LibraryMembershipData = {
     application: {
       title: "Mr",
       first_name: "John",
+      initials: "M",
       last_name: "Smith",
       full_name: "John Michael Smith",
       reg_no: 20240001,
@@ -201,7 +201,9 @@ const MembershipApplicationDetail: React.FC = () => {
 
   return (
     <TooltipProvider>
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="flex flex-col h-screen">
+        <div className="bg-white border-b top-0 z-10">
+    <div className="max-w-6xl mx-auto p-6">
       {/* Header Card */}
       <div className="flex justify-between items-center">
       <h1 className="text-3xl font-bold text-gray-900">Membership Application</h1>
@@ -255,14 +257,21 @@ const MembershipApplicationDetail: React.FC = () => {
             )}
           </div>
         </div>
-      <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
-        <ProcessTimeline 
-          applicationState={data.state}
-          paymentStatus={data.payment_status}
-          membershipStatus={data.membership_status}
-        />
       </div>
-      
+      </div>
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6">
+          <ProcessTimeline 
+            applicationState={data.state}
+            paymentStatus={data.payment_status}
+            membershipStatus={data.membership_status}
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+      <div className="max-w-6xl mx-auto p-6 space-y-8">
+
       {/* Status Alert */}
       {data.state === 'pending' && (
         <Alert variant="default" className="bg-amber-50 border-amber-200">          <AlertCircle className="w-4 h-4 text-amber-600" />
@@ -271,61 +280,83 @@ const MembershipApplicationDetail: React.FC = () => {
           </AlertDescription>
         </Alert>
       )}
-{/* Profile Section */}
 
-<ProfileSection 
+        <ProfileSection 
           data={data}
           actionInProgress={actionInProgress}
           onAction={handleAction}
           isEditing={isEditing}
+          onSave={handleSave}
         />
-
-      {/* Information Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <ContactSection 
-            data={data}
-            isEditing={isEditing}
-            onEdit={handleEdit}
-          />
-
-          <AcademicSection 
-            data={data}
-            isEditing={isEditing}
-            onEdit={handleEdit}
-      />
-
-
-      </div>
     </div>
+  </div>
+  </div>
 
-    {/* Confirmation Dialog */}
-    <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>
-          Confirm {pendingAction === 'approved' ? 'Approval' : 'Rejection'}
-        </DialogTitle>
-        <DialogDescription>
-          Are you sure you want to {pendingAction} this application? 
-          This action cannot be undone.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-      <Button
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <DialogContent className="bg-white p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 space-y-3 border-b border-gray-100">
+          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+            {pendingAction === 'approved' ? (
+              <>
+                <Check className="w-5 h-5 text-orange-500" />
+                Confirm Approval
+              </>
+            ) : (
+              <>
+                <X className="w-5 h-5 text-orange-500" />
+                Confirm Rejection
+              </>
+            )}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4 p-4 bg-orange-50/50 rounded-lg">
+                <img
+                  src={data.application.profile_pic || '/placeholder.png'}
+                  alt=""
+                  className="h-12 w-12 rounded-full object-cover ring-2 ring-orange-100"
+                />
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900">
+                    {data.application.full_name}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    ID: {data.application.student_id}
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-sm">
+                Are you sure you want to {pendingAction} this membership application? 
+                This action cannot be undone.
+              </p>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+    
+        <DialogFooter className="p-6 pt-4 bg-gray-50/50 border-t border-gray-100">
+          <div className="flex justify-end gap-3 w-full">
+            <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
+              className="border-gray-200 hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button
-              variant={pendingAction === 'approved' ? 'default' : 'destructive'}
               onClick={confirmAction}
+              className={
+                pendingAction === 'approved' 
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                  : 'bg-red-600 hover:bg-red-700 text-white'
+              }
             >
-              {pendingAction === 'approved' ? 'Approve' : 'Reject'}
+              {pendingAction === 'approved' ? 'Approve Application' : 'Reject Application'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </TooltipProvider>
 );
 }
