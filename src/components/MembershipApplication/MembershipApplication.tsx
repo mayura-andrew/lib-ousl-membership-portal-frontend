@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "../../hooks/use-toast";
 import { TooltipButton } from '../ui/tooltip-button';
 import { ProfileSection } from '../Membership/sections/ProfileSection';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 type ApplicationState = 'pending' | 'approved' | 'rejected';
 
@@ -85,6 +86,7 @@ const mockData: LibraryMembershipData = {
 };
 
 const MembershipApplicationDetail: React.FC = () => {
+  const { addNotification } = useNotifications();
   const { membershipId } = useParams();
   const [data, setData] = useState<LibraryMembershipData | null>(null);
   const [editedData, setEditedData] = useState<LibraryMembershipData | null>(null);
@@ -106,11 +108,23 @@ const MembershipApplicationDetail: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       setData(editedData);
       setIsEditing(false);
+
+      addNotification({
+        type: 'success',
+        title: 'Changes Saved',
+        message: 'Application details have been updated successfully',
+        link: `/admin/dashboard/memberships/${data?.id}`
+      });
       toast({
         title: "Changes saved successfully",
         variant: "default",
       });
     } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save changes. Please try again.',
+      });
       toast({
         title: "Failed to save changes",
         description: "Please try again",
@@ -163,12 +177,24 @@ const MembershipApplicationDetail: React.FC = () => {
         state: pendingAction,
         status_updated_date: new Date().toISOString()
       } : null);
+
+      addNotification({
+        type: 'success',
+        title: `Application ${pendingAction}`,
+        message: `Membership application has been ${pendingAction} successfully`,
+        link: `/admin/dashboard/memberships/${data?.id}`
+      });
       
       toast({
         title: `Application ${pendingAction} successfully`,
         variant: "default",
       });
     } catch (error) {
+      addNotification({
+        type: 'error',
+        title: 'Action Failed',
+        message: `Failed to ${pendingAction} application. Please try again.`
+      });
       toast({
         title: "Action failed",
         description: "Please try again",

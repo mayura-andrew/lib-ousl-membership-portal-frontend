@@ -5,26 +5,31 @@ import MainLayout from './components/Layout/MainLayout';
 import MembershipApplication from './pages/MembershipApplication';
 import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { NotificationDropdown } from './components/Notifications/NotificationDropdown';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-                  path="/membership-application"
-                  element={<MembershipApplication />}
-            />
-            <Route path="/admin/dashboard/*" element={<Dashboard />} />
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <MainLayout>
+          <NotificationDropdown />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route
+                    path="/membership-application"
+                    element={<MembershipApplication />}
+              />
+              <Route path="/admin/dashboard/*" element={<Dashboard />} />
 
-          </Routes>
-        </MainLayout>
-      </BrowserRouter>
-    </QueryClientProvider>
+            </Routes>
+          </MainLayout>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </NotificationProvider>
   );
 }
 
